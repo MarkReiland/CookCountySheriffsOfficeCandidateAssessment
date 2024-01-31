@@ -10,10 +10,14 @@ namespace CandidateAssessment.Controllers
     {
         private StudentService _studentService;
         private SchoolService _schoolService;
-        public RecordsController(StudentService studentService, SchoolService schoolService)
+        private StudentOrganizationService _studentOrganizationService;
+        private OrgAssignmentService _orgAssignmentService;
+        public RecordsController(StudentService studentService, SchoolService schoolService, StudentOrganizationService studentOrganizationService, OrgAssignmentService orgAssignmentService)
         {
             _studentService = studentService;
             _schoolService = schoolService;
+            _studentOrganizationService = studentOrganizationService;
+            _orgAssignmentService = orgAssignmentService;
         }
 
         public IActionResult Students()
@@ -37,6 +41,19 @@ namespace CandidateAssessment.Controllers
         {
             // replace this code with code that actually saves the model
 
+            _studentService.SaveStudent(model);
+
+            // convert the SelectedOrgs property of the model to OrgAssignments
+            var OrgAssignments = new List<OrgAssignment>();
+
+                if (model.SelectedOrgs != null)
+                {
+                    foreach (int orgId in model.SelectedOrgs)
+                    {
+                        _orgAssignmentService.SaveOrgAssignment(new OrgAssignment { StudentId = model.StudentId, StudentOrgId = orgId });
+                    }
+                }
+
             return RedirectToAction("Students");
         }
 
@@ -57,19 +74,26 @@ namespace CandidateAssessment.Controllers
         private List<SelectListItem> CreateSchoolDropdownList()
         {
             // replace this code with code to grab the schools and create a List<SelectListItem> object from them.
-            return new List<SelectListItem> { new SelectListItem { Text = "Replace this code", Value = "" } };
+
+            var schools = _schoolService.GetSchools().OrderBy(s => s.Name);
+            var options = new List<SelectListItem>();
+
+            foreach (School school in schools) {
+                options.Add(new SelectListItem { Text = school.Name, Value = school.SchoolId.ToString() });
+            }
+
+            return options;
         }
 
         private MultiSelectList CreateStudentOrgDropdown()
         {
-            // replace this code with code to grab the student orgs and create a List<SelectListItem> object from them.
-            var options = new List<SelectListItem>
+            var orgs = _studentOrganizationService.GetStudentOrganizations().OrderBy(s => s.OrgName);
+            var options = new List<SelectListItem>();
+
+            foreach (StudentOrganization studentOrganization in orgs)
             {
-                new SelectListItem { Text = "Option 1", Value = "1" },
-                new SelectListItem { Text = "Option 2", Value = "2" },
-                new SelectListItem { Text = "Option 3", Value = "3" },
-                new SelectListItem { Text = "Option 4", Value = "4" }
-            };
+                options.Add(new SelectListItem { Text = studentOrganization.OrgName, Value = studentOrganization.Id.ToString() });
+            }
 
             return new MultiSelectList(options, "Value", "Text");
         }

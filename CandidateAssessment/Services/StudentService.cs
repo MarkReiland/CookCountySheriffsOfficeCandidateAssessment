@@ -19,5 +19,10 @@ namespace CandidateAssessment.Services
                 .Include(s => s.OrgAssignments)
                     .ThenInclude(oa => oa.StudentOrg);
         }
+
+        public void SaveStudent(Student model) {
+            _dbContext.Students.Add(model);
+            _dbContext.SaveChanges();
+        }
     }
 }
