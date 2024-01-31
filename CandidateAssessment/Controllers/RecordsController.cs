@@ -36,6 +36,14 @@ namespace CandidateAssessment.Controllers
             return View(model);
         }
 
+        public IActionResult SchoolRoster(int schoolId, string schoolName)
+        {
+            ViewBag.SchoolName = schoolName;
+
+            var model = _studentService.GetStudents().Where(s => s.SchoolId == schoolId).OrderBy(s => s.LastName);
+            return View(model);
+        }
+
         [HttpPost]
         public IActionResult SaveStudent(Student model)
         {
